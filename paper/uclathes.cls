@@ -468,7 +468,8 @@
 % LIST OF FIGURES
 %
 \newif\if@figures
-\@figurestrue  % rbw did this in \makeintropages; I moved it here.  ---johnh 950825
+\@figurestrue
+\newcommand\nolistoffigures{\@figuresfalse}
 \def\listoffigures{
   \if@figures\chapter*{List of Figures\markboth
    {LIST OF FIGURES}{LIST OF FIGURES}}\@starttoc{lof}\fi}
@@ -478,7 +479,8 @@
 % LIST OF TABLES
 %
 \newif\if@tables
-\@tablestrue  % rbw did this in \makeintropages; I moved it here.  ---johnh 950825
+\@tablestrue
+\newcommand\nolistoftables{\@tablesfalse}
 \def\listoftables{
   \if@tables\chapter*{List of Tables\markboth
    {LIST OF TABLES}{LIST OF TABLES}}\@starttoc{lot}\fi}
