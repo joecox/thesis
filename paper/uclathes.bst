@@ -67,6 +67,20 @@ FUNCTION {emphasize}
   if$
 }
 
+FUNCTION {italicize}
+{ duplicate$ empty$
+    { pop$ "" }
+    { "{\itshape " swap$ * "}" * }
+  if$
+}
+
+FUNCTION {smallcaps}
+{ duplicate$ empty$
+    { pop$ "" }
+    { "{\scshape " swap$ * "}" * }
+  if$
+}
+
 FUNCTION {boldface}
 { duplicate$ empty$
     { pop$ "" }
@@ -119,9 +133,7 @@ FUNCTION {output.check}
 
 FUNCTION {output.bibitem}
 { newline$
-  "\bibitem[" write$
-  label write$
-  "]{" write$
+  "\bibitem{" write$
   cite$ write$
   "}" write$
   newline$
@@ -229,7 +241,7 @@ FUNCTION {format.names}
   s num.names$ 'numnames :=
   numnames 'namesleft :=
     { namesleft #0 > }
-    { s nameptr "{ff~}{vv~}{ll}{, jj}" format.name$ 't :=
+    { s nameptr "{vv~}{ll,~}{ff}{, jj}" format.name$ 't :=
       nameptr #1 >
 	{ namesleft #1 >
 	    { ", " * t * }
@@ -255,7 +267,7 @@ FUNCTION {format.names}
 FUNCTION {format.authors}
 { author empty$
     { "" }
-    { author format.names }
+    { author format.names smallcaps }
   if$
 }
 
@@ -274,7 +286,7 @@ FUNCTION {format.editors}
 FUNCTION {format.title}
 { title empty$
     { "" }
-    { "``" title * add.period$ "''" * }
+    { title add.period$ }
   if$
 }
 
@@ -583,7 +595,7 @@ FUNCTION {article}
   format.title "title" output.check
   new.block
   crossref missing$
-    { journal emphasize "journal" output.check
+    { journal italicize "journal" output.check
       format.vol.num.pages output
       format.date "year" output.check
     }
@@ -776,9 +788,24 @@ FUNCTION {mastersthesis}
 { output.bibitem
   format.authors "author" output.check
   new.block
-  format.title emphasize "title" output.check
+  format.title "title" output.check
   new.block
   "Master's thesis" format.thesis.type output.nonnull
+  school "school" output.check
+  address output
+  format.date "year" output.check
+  new.block
+  note output
+  fin.entry
+}
+
+FUNCTION {mastersproject}
+{ output.bibitem
+  format.authors "author" output.check
+  new.block
+  format.title "title" output.check
+  new.block
+  "Master's project" format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check
@@ -986,27 +1013,37 @@ FUNCTION {format.lab.names}
   if$
   key empty$
     'skip$
-    { pop$ key #3 text.prefix$ }
+    { pop$ key "" * }
   if$
 }
 
 FUNCTION {author.key.label}
-{ author empty$
-    { key empty$
-	{ cite$ #1 #3 substring$ }
-	{ key #3 text.prefix$ }
-      if$
-    }
+{ key empty$
+  { author empty$
+    { cite$ #1 #3 substring$ }
     { author format.lab.names }
+    if$
+  }
+  { key "" * }
   if$
 }
+    
+%{ author empty$
+%    { key empty$
+%	{ cite$ #1 #3 substring$ }
+%	{ key "" * }
+%     if$
+%    }
+%    { author format.lab.names }
+%  if$
+%}
 
 FUNCTION {author.editor.key.label}
 { author empty$
     { editor empty$
 	{ key empty$
 	    { cite$ #1 #3 substring$ }
-	    { key #3 text.prefix$ }
+	    { key "" * }
 	  if$
 	}
 	{ editor format.lab.names }
@@ -1024,7 +1061,7 @@ FUNCTION {author.key.organization.label}
 	    { "The " #4 organization chop.word #3 text.prefix$ }
 	  if$
 	}
-	{ key #3 text.prefix$ }
+	{ key "" * }
       if$
     }
     { author format.lab.names }
@@ -1039,7 +1076,7 @@ FUNCTION {editor.key.organization.label}
 	    { "The " #4 organization chop.word #3 text.prefix$ }
 	  if$
 	}
-	{ key #3 text.prefix$ }
+	{ key "" * }
       if$
     }
     { editor format.lab.names }
@@ -1169,11 +1206,7 @@ FUNCTION {editor.organization.sort}
 }
 
 FUNCTION {presort}
-{ calc.label
-  sort.label
-  "    "
-  *
-  type$ "book" =
+{ type$ "book" =
   type$ "inbook" =
   or
     'author.editor.sort
@@ -1187,7 +1220,6 @@ FUNCTION {presort}
       if$
     }
   if$
-  *
   "    "
   *
   year field.or.null sortify
