@@ -1,1 +1,36 @@
-\chapter{Approach}
+\chapter{Approach and Implementation}
+In this chapter we describe the approach taken for our analysis. We show how the analysis propagates taint through the program and how this more accurately models the behavior of Phosphor than previous work. The analysis is constructed as a series of Datalog program facts which build on existing facts and each other. Each program fact is defined as a logical conjunction of one or more program facts. We begin with the facts that describe taintedness in local variables and fields. We then describe facts that are concerned with how taint is propagated through native library calls. We then describe facts that determine which methods need to be tracked. We finally describe facts about which call sites of tracked methods will be instrumented. We also detail additions and modifications to Petablox that were required to enable the analysis. In addition to showing the Datalog facts that power the analysis, we also include annotated code examples to ease understanding.
+\section{Tainted and Untainted Objects}
+taintedX/untaintedX
+
+taintedF/untaintedF
+
+assignment
+
+returns
+
+returns from sources
+
+arguments
+\section{Native Code}
+tainted - non system.arraycopy
+
+tainted - system.arraycopy
+\section{Tracked and Untracked Methods}
+tracked(m)
+
+calls into sinks
+
+untracked(m)
+\section{Instrumented and Uninstrumented Call Sites}
+inst(m,n)
+
+tainted args, field loads
+
+uninst(m,n)
+\section{Additions and Modifications to Petablox}
+Petablox schema incomplete
+
+Native methods
+
+Primitives and constants
