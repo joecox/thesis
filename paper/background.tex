@@ -1,23 +1,27 @@
 \chapter{Background and Prior Work}
 This paper builds on a number of existing tools and prior work done by the author and others. In this chapter we describe the existing tools in greater detail and how they were modified or supplemented to support the analysis in the paper. First, we expand on the technical details of Phosphor. Second, we describe details of Petablox, including its architecture and Datalog fact engine. We also describe prior work on partial instrumentation in greater detail to help elucidate the differences between the analysis in that prior work and the analysis in this paper.
 \section{Phosphor}
-Phosphor \cite{phosphor_oopsla} is a general purpose taint tracking tool
+Phosphor \cite{phosphor_oopsla} is a general purpose taint tracking tool that is capable of performing fast, portable, sound, and precise data flow tracking for the JVM. Phosphor is able to be far more portable than previous methods because it does not require program source code. Instead, it only requires program bytecode and achieves taint tracking by instrumenting that bytecode. Under the hood, Phosphor instruments bytecode using the ASM byte code manipulation library \cite{bruneton2002asm}. Phosphor achieves soundness by considering every possible opcode to appear in the bytecode and adding operations to support taint propagation for each opcode. Specific behavior for each opcode is detailed at the end of \cite{phosphor_oopsla}.
 
-taint tag info
+Phosphor is meant to be used to track data from user-specified source methods to user-specified sink methods. A user can specify files detailing source and sink methods as inputs to the Phosphor program. The format of a method description inside those files is:
 
-example tag propagation
+\begin{center}
+  \texttt{<java.io.InputStream: int read(byte[],int,int)>}
+\end{center}
 
-native
+The format includes, sequentially, the enclosing class, return type, name, and argument types. All types are fully qualified with the package name. This is the same method description format for all of the analysis presented in this paper.
 
-source and sinks
+Phosphor tracks data flow by adding instrumentation to propagate shadow variables representing taint tags for every local variable, argument, field, class instance, array element, and more, in the program. Taint tags are represented as 32-bit integers, so in theory, there are up to $2^{32}$ possible taint tags. For ease of tag propagation, Phosphor considers there to be 32 possible base taint tags that can be assigned to data entering the program. Phosphor taints data originating from source methods with a different taint tag for each source method. Therefore, there can be up to 32 enumerated source methods for each to have a unique tag. As data moves through the program, taint tags are often modified and combined to accurately show the origin of the data. For example, if a variable $x$ originates from method \texttt{foo} and has taint tag \texttt{0x00000001}, variable $y$ originates from \texttt{bar} and has taint tag \texttt{0x00000002}, and $z = x + y;$, the taint tags of $x$ and $y$ are bitwise-ORed, resulting in a tag of \texttt{0x00000003}. A simple inspection of the taint tag of $z$ shows that its value originated from both \texttt{bar} and \texttt{foo}.
 
-jdk stuff, eval
+Phosphor also tracks data across boundaries into native libraries with a few special cases. For \texttt{System.arraycopy}, the taint array of the source array is simply copied as a taint array for the destination array. For other native calls with return values, a bitwise OR of all the taint tags of the arguments is done to generate the taint tag of the return value.
+
+In addition to instrumented application bytecode, Phosphor requires a fully instrumented JVM to function correctly. This contributes to a downside to Phosphor, which is the runtime performance overhead of, on average, 53\%. It is hard to know without a study, but it is possible that this is still too high an overhead for widespread adoption in systems.
 \section{Petablox}
 Petablox \cite{petablox} is a large-scale program analysis tool developed at Georgia Tech. Petablox is capable of running analyses such as deadlock analysis, datarace analysis, and k-cfa object sensitive and insensitive analyses on very large codebases.
 
 Petablox uses Datalog \cite{datalog} to generate program analysis facts from other program facts. Datalog is a logic programming language and a strict subset of Prolog. Statements in Datalog take on the form \texttt{x(t) :- y(t), z(t).}, where the predicate being defined on the left hand side is a logical conjunction of the predicates on the right hand side.
 
-Internally, Petablox uses the Soot bytecode optimization framework \cite{vallee1999soot} to produce a higher level representation (namely Jimple or Baf) of the program bytecode. Petablox then translates that representation into Datalog program facts. Petablox maintains a number of program entity domains, including domains of methods, local variables, fields, and more. These domains are populated with all of the relevant entities generated by Soot. Domains are typically labeled with a single letter in Petablox. For example, domain M represents the domain of all methods in the program.
+Internally, Petablox uses the Soot bytecode optimization framework \cite{vallee1999soot} to produce a higher level representation (namely Jimple \cite{vallee1998jimple}) of the program bytecode. Petablox then translates that representation into Datalog program facts. Petablox maintains a number of program entity domains, including domains of methods, local variables, fields, and more. These domains are populated with all of the relevant entities generated by Soot. Domains are typically labeled with a single letter in Petablox. For example, domain M represents the domain of all methods in the program.
 
 Petablox also computes a number of relations on top of the domains. These relations come in two basic types:
 
