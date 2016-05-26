@@ -10,7 +10,7 @@ While Phosphor \cite{phosphor_oopsla} was evaluated on performance using all 14 
   \begin{tabular}{|c|c|c|}
     \hline
     Benchmark & \cite{manoj_project} & This paper \\ \hline
-    avrora & 46948 & x \\\hline
+    avrora & 46948 & 6724 \\\hline
     batik & 50625 & x \\\hline
     eclipse & 21776 & x \\\hline
     fop & 52183 & x \\\hline
@@ -28,10 +28,7 @@ While Phosphor \cite{phosphor_oopsla} was evaluated on performance using all 14 
   \captionof{table}{Tracked method counts of \cite{manoj_project} and this paper's analysis}
 \end{center}
 
-Table 4.1 shows the tracked method counts produced by the previous analysis created in \cite{manoj_project} and the analysis in this paper. The tracked methods are the methods that will become instrumented by Phosphor to track taint propagation through the method. Remaining untracked methods only contain local variables which remain always tainted or untainted for the duration of the method and as such we do not need to track taint. Because instrumentation of methods in the primary contributer to the performance overhead of Phosphor and in \cite{manoj_phosphor}, comparing the tracked method counts of the previous analysis and the analysis in this paper is a good proxy for comparing performance overhead.
-    
+Table 4.1 shows the tracked method counts produced by the previous analysis created in \cite{manoj_project} and the analysis in this paper. The tracked methods are the methods that will become instrumented by Phosphor to track taint propagation through the method. Remaining untracked methods only contain local variables which remain always tainted or untainted for the duration of the method and as such we do not need to track taint. Because instrumentation of methods is the primary contributer to the performance overhead of Phosphor and in \cite{manoj_phosphor}, comparing the tracked method counts of the previous analysis and the analysis in this paper is a good proxy for comparing performance overhead.
+
 \section{Benchmarking Phosphor}
-
-
-
-Details about how we would benchmark modified Phosphor here. Say something about why we didn't get to it?
+While the above measurements of trackd method counts are good proxies for comparing performance, they do not directly measure real-world performance of the modified Phosphor tool described in section 3.6. Additional evaluation of the analysis approach in this paper can be done by measuring runtime performance of Phosphor on the Dacapo benchmarks given the information on which methods to track and which call sites to instrument. These performance results were not obtained due to time restrictions and other confounding factors.
