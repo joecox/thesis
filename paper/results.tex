@@ -1,4 +1,37 @@
-\chapter{Evaluation}
-We evaluated our approach strictly on the dimension of performance, specifically measuring runtime performance overhead of the modified Phosphor tool.  We compared our performance overhead against both the original Phosphor work \cite{phosphor_oopsla} and previous partial instrumentation work \cite{manoj_project}.  We evaluated the approach using the 9.12-bach release of the DaCapo benchmarks \cite{dacapobach}.  All experiments were performed using an Apple MacBook Pro (2015) running Mac OS 10.11.2 with a 2.9 GHz Intel Core i5 processor and 16 GB of RAM. 
+\chapter{Results}
+We evaluated our approach by comparing the number of tracked methods produced by the analysis of the prior partial instrumentation work to the number of tracked methods produced by the analysis in this paper.
+
 \section{Benchmark set}
-While Phosphor \cite{phosphor_oopsla} was evaluated using all 14 DaCapo benchmarks included in the 9.12-bach release, \cite{manoj_project} was evaluated using only 7 of the 14 benchmarks: avrora, batik, h2, pmd, sunflow, tomcat, and xalan. \{reasonswhy\}  We evaluated our approach on \{bms\}.
+While Phosphor \cite{phosphor_oopsla} was evaluated on performance using all 14 benchmarks of the  DaCapo benchmark suite \cite{dacapobach} included in the 9.12-bach release, \cite{manoj_project} was evaluated on performance using only 7 of the 14 benchmarks: avrora, batik, h2, pmd, sunflow, tomcat, and xalan, due to numerous problems with bytecode verification for the remaining 7. However, lists of tracked methods were generated for all 14 of the benchmarks in the \cite{manoj_project}, so we can compare tracked method counts between that project and this paper. The lists of tracked methods produced in \cite{manoj_project} are probably not completely accurate because more code may have had to be instrumented to solve the bytecode verification issues. However, the comparison can still be made because, if anything, the method lists of \cite{manoj_project} would only have been larger. If the tracked method counts from this paper's analysis are favorable compared to those of \cite{manoj_project}, then they would only be more favorable if the method lists from \cite{manoj_project} were larger.
+
+\section{Method counts}
+
+\begin{center}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Benchmark & \cite{manoj_project} & This paper \\ \hline
+    avrora & 46948 & x \\\hline
+    batik & 50625 & x \\\hline
+    eclipse & 21776 & x \\\hline
+    fop & 52183 & x \\\hline
+    h2 & 49765 & x \\\hline
+    jython & 55125 & x \\\hline
+    luindex & 21397 & x \\\hline
+    lusearch & 21524 & x \\\hline
+    pmd & 47148 & x \\\hline
+    sunflow & 45700 & x \\\hline
+    tomcat & 45935 & x \\\hline
+    tradebeans & 45953 & x \\\hline
+    tradesoap & 45786 & x \\\hline
+    xalan & 48437 & x \\\hline
+  \end{tabular}
+  \captionof{table}{Tracked method counts of \cite{manoj_project} and this paper's analysis}
+\end{center}
+
+Table 4.1 shows the tracked method counts produced by the previous analysis created in \cite{manoj_project} and the analysis in this paper. The tracked methods are the methods that will become instrumented by Phosphor to track taint propagation through the method. Remaining untracked methods only contain local variables which remain always tainted or untainted for the duration of the method and as such we do not need to track taint. Because instrumentation of methods in the primary contributer to the performance overhead of Phosphor and in \cite{manoj_phosphor}, comparing the tracked method counts of the previous analysis and the analysis in this paper is a good proxy for comparing performance overhead.
+    
+\section{Benchmarking Phosphor}
+
+
+
+Details about how we would benchmark modified Phosphor here. Say something about why we didn't get to it?

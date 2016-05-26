@@ -1,3 +1,5 @@
 \abstract {
-  blah blah
+Dynamic taint tracking is an important field of study with many tools and systems created to implement it in Java, including Phosphor, a general purpose taint tracking tool designed for commodity JVMs like Oracle and OpenJDK. Phosphor works by instrumenting the JVM and the entire application bytecode with operations to accurately propagate taint information. Prior work aimed at reducing the peformance overhead of Phosphor by doing partial instrumentation. The analysis that determined which parts of the program to instrument was effective but flawed.
+
+This paper aims to improve that analysis and further reduce the performance overhead by instrumenting less of the program. We use the Petablox program analysis tool and custom Datalog rules to perform an information flow analysis that better models Phosphor's behavior, including calls across native library boundaries. We find that our method reduces the amount of a program that needs to be instrumented by \_\%.
 }
