@@ -1,52 +1,211 @@
 \chapter{Background and Prior Work}
-This paper builds on a number of existing tools and prior work done by the author and others. In this chapter we describe the existing tools in greater detail and how they were modified or supplemented to support the analysis in the paper. First, we expand on the technical details of Phosphor. Second, we describe details of Petablox, including its architecture and Datalog fact engine. We also describe prior work on partial instrumentation in greater detail to help elucidate the differences between the analysis in that prior work and the analysis in this paper.
+This paper builds on a number of existing tools and prior work done by
+the author and others. In this chapter we describe the existing tools
+in greater detail and how they were modified or supplemented to
+support the analysis in the paper. First, we expand on the technical
+details of Phosphor. Second, we describe details of Petablox,
+including its architecture and Datalog fact engine. We also describe
+prior work on partial instrumentation in greater detail to help
+elucidate the differences between the analysis in that prior work and
+the analysis in this paper.
 \section{Phosphor}
-Phosphor \cite{phosphor_oopsla} is a general purpose taint tracking tool that is capable of performing fast, portable, sound, and precise data flow tracking for the JVM. Phosphor is able to be far more portable than previous methods because it does not require program source code. Instead, it only requires program bytecode and achieves taint tracking by instrumenting that bytecode. Under the hood, Phosphor instruments bytecode using the ASM byte code manipulation library \cite{bruneton2002asm}. Phosphor achieves soundness by considering every possible opcode to appear in the bytecode and adding operations to support taint propagation for each opcode. Specific behavior for each opcode is detailed at the end of \cite{phosphor_oopsla}.
+Phosphor \cite{phosphor_oopsla} is a general purpose taint tracking
+tool that is capable of performing fast, portable, sound, and precise
+data flow tracking for the JVM. Phosphor is able to be far more
+portable than previous methods because it does not require program
+source code. Instead, it only requires program bytecode and achieves
+taint tracking by instrumenting that bytecode. Under the hood,
+Phosphor instruments bytecode using the ASM byte code manipulation
+library \cite{bruneton2002asm}. Phosphor achieves soundness by
+considering every possible opcode to appear in the bytecode and adding
+operations to support taint propagation for each opcode. Specific
+behavior for each opcode is detailed at the end of
+\cite{phosphor_oopsla}.
 
-Phosphor is meant to be used to track data from user-specified source methods to user-specified sink methods. A user can specify files detailing source and sink methods as inputs to the Phosphor program. The format of a method description inside those files is:
+Phosphor is meant to be used to track data from user-specified source
+methods to user-specified sink methods. A user can specify files
+detailing source and sink methods as inputs to the Phosphor
+program. The format of a method description inside those files is:
 
 \begin{center}
   \texttt{<java.io.InputStream: int read(byte[],int,int)>}
 \end{center}
 
-The format includes, sequentially, the enclosing class, return type, name, and argument types. All types are fully qualified with the package name. This is the same method description format for all of the analyses presented in this paper.
+The format includes, sequentially, the enclosing class, return type,
+name, and argument types. All types are fully qualified with the
+package name. This is the same method description format for all of
+the analyses presented in this paper.
 
-Phosphor tracks data flow by adding instrumentation to propagate shadow variables representing taint tags for every local variable, argument, field, class instance, array element, and more, in the program. Taint tags are represented as 32-bit integers, so in theory, there are up to $2^{32}$ possible taint tags. For ease of tag propagation, Phosphor considers there to be 32 possible base taint tags that can be assigned to data entering the program. Phosphor taints data originating from source methods with a different taint tag for each source method. Therefore, there can be up to 32 enumerated source methods for each to have a unique tag. As data moves through the program, taint tags are often modified and combined to accurately show the origin of the data. For example, if a variable $x$ originates from method \texttt{foo} and has taint tag \texttt{0x00000001}, variable $y$ originates from \texttt{bar} and has taint tag \texttt{0x00000002}, and $z = x + y;$, the taint tags of $x$ and $y$ are bitwise-ORed, resulting in a tag of \texttt{0x00000003}. A simple inspection of the taint tag of $z$ shows that its value originated from both \texttt{bar} and \texttt{foo}.
+Phosphor tracks data flow by adding instrumentation to propagate
+shadow variables representing taint tags for every local variable,
+argument, field, class instance, array element, and more, in the
+program. Taint tags are represented as 32-bit integers, so in theory,
+there are up to $2^{32}$ possible taint tags. For ease of tag
+propagation, Phosphor considers there to be 32 possible base taint
+tags that can be assigned to data entering the program. Phosphor
+taints data originating from source methods with a different taint tag
+for each source method. Therefore, there can be up to 32 enumerated
+source methods for each to have a unique tag. As data moves through
+the program, taint tags are often modified and combined to accurately
+show the origin of the data. For example, if a variable $x$ originates
+from method \texttt{foo} and has taint tag \texttt{0x00000001},
+variable $y$ originates from \texttt{bar} and has taint tag
+\texttt{0x00000002}, and $z = x + y;$, the taint tags of $x$ and $y$
+are bitwise-ORed, resulting in a tag of \texttt{0x00000003}. A simple
+inspection of the taint tag of $z$ shows that its value originated
+from both \texttt{bar} and \texttt{foo}.
 
-Phosphor also tracks data across boundaries into native libraries with a few special cases. For \texttt{System.arraycopy}, the taint array of the source array is simply copied as a taint array for the destination array. For other native calls with return values, a bitwise OR of all the taint tags of the arguments is done to generate the taint tag of the return value.
+Phosphor also tracks data across boundaries into native libraries with
+a few special cases. For \texttt{System.arraycopy}, the taint array of
+the source array is simply copied as a taint array for the destination
+array. For other native calls with return values, a bitwise OR of all
+the taint tags of the arguments is done to generate the taint tag of
+the return value.
 
-In addition to instrumented application bytecode, Phosphor requires a fully instrumented JVM to function correctly. This contributes to a downside to Phosphor, which is the runtime performance overhead of, on average, 53\%. It is hard to know without a study, but it is possible that this is still too high an overhead for widespread adoption in systems.
+In addition to instrumented application bytecode, Phosphor requires a
+fully instrumented JVM to function correctly. This contributes to a
+downside to Phosphor, which is the runtime performance overhead of, on
+average, 53\%. It is hard to know without a study, but it is possible
+that this is still too high an overhead for widespread adoption in
+systems.
 \section{Petablox}
-Petablox \cite{petablox} is a large-scale program analysis tool developed at Georgia Tech. Petablox is capable of running analyses such as deadlock analysis, datarace analysis, and k-cfa object sensitive and insensitive analyses on very large codebases.
+Petablox \cite{petablox} is a large-scale program analysis tool
+developed at Georgia Tech. Petablox is capable of running analyses
+such as deadlock analysis, datarace analysis, and k-cfa object
+sensitive and insensitive analyses on very large codebases.
 
-Petablox uses Datalog \cite{datalog} to generate program analysis facts from other program facts. Datalog is a logic programming language and a strict subset of Prolog. Statements in Datalog take on the form \texttt{x(t) :- y(t), z(t).}, where the predicate being defined on the left hand side is a logical conjunction of one or more predicates on the right hand side.
+Petablox uses Datalog \cite{datalog} to generate program analysis
+facts from other program facts. Datalog is a logic programming
+language and a strict subset of Prolog. Statements in Datalog take on
+the form \texttt{x(t) :- y(t), z(t).}, where the predicate being
+defined on the left hand side is a logical conjunction of one or more
+predicates on the right hand side.
 
-Internally, Petablox uses the Soot bytecode optimization framework \cite{vallee1999soot} to obtain a high level representation (namely Jimple \cite{vallee1998jimple}) of the program bytecode. Petablox then translates that representation into Datalog program facts. Petablox maintains a number of program entity domains, including domains of methods, local variables, fields, and more. These domains are populated with all of the relevant entities generated by Soot. Domains are typically labeled with a single letter in Petablox. For example, domain M represents the domain of all methods in the program.
+Internally, Petablox uses the Soot bytecode optimization framework
+\cite{vallee1999soot} to obtain a high level representation (namely
+Jimple \cite{vallee1998jimple}) of the program bytecode. Petablox then
+translates that representation into Datalog program facts. Petablox
+maintains a number of program entity domains, including domains of
+methods, local variables, fields, and more. These domains are
+populated with all of the relevant entities generated by Soot. Domains
+are typically labeled with a single letter in Petablox. For example,
+domain M represents the domain of all methods in the program.
 
-Petablox also computes a number of relations on top of the domains. These relations come in two basic types:
+Petablox also computes a number of relations on top of the
+domains. These relations come in two basic types:
 
 \begin{itemize}
-  \item Relations which add a level of specificity to a domain and create a subset of the domain. An example would be a relation consisting of all fields that are declared final.
+  \item Relations which add a level of specificity to a domain and
+    create a subset of the domain. An example would be a relation
+    consisting of all fields that are declared final.
   \item Relations which relate two or more different domains.
 \end{itemize}
 
-The second kind of relation is the most common. An example would be the \texttt{MmethArg} relation, which relates methods, the local variables which represent the arguments to the method, and the position of those variables in the argument list. This relation allows one to query if a local variable is the same variable as a positional argument. The components of the relation are restricted to certain predefined domains. The method must be in the method domain, the local variable must be in the domain of local variables, and the position must appear in the domain of integer argument positions. This gives Petablox relations a certain aspect of typing and prevents the addition of any facts that do not have the correct type or do not appear in the associated domain. The existence of facts in domains cannot be modified by relations, as domains are populated once and are constant thereafter. 
+The second kind of relation is the most common. An example would be
+the \texttt{MmethArg} relation, which relates methods, the local
+variables which represent the arguments to the method, and the
+position of those variables in the argument list. This relation allows
+one to query if a local variable is the same variable as a positional
+argument. The components of the relation are restricted to certain
+predefined domains. The method must be in the method domain, the local
+variable must be in the domain of local variables, and the position
+must appear in the domain of integer argument positions. This gives
+Petablox relations a certain aspect of typing and prevents the
+addition of any facts that do not have the correct type or do not
+appear in the associated domain. The existence of facts in domains
+cannot be modified by relations, as domains are populated once and are
+constant thereafter.
 
-Some relations are defined using Java and some are defined directly in Datalog. The relations defined in Java are typically those that are easier to create with access to Soot types and utilities. Relations defined directly in Datalog are typically those that are logically abstract and are components of an analysis. Predicates defined in Java are computed simply by running the definition code after the program domains have been populated. However, computing predicates defined in Datalog requires a Datalog engine to run the Datalog code. Petablox offers compatibility with two such engines: bddbddb \cite{bddbddb} and the proprietary Logicblox database \cite{logicblox}. Logicblox runs on a modified form of Datalog called LogiQL, so Petablox includes tools to convert Datalog code to LogiQL code for use with Logicblox.
+Some relations are defined using Java and some are defined directly in
+Datalog. The relations defined in Java are typically those that are
+easier to create with access to Soot types and utilities. Relations
+defined directly in Datalog are typically those that are logically
+abstract and are components of an analysis. Predicates defined in Java
+are computed simply by running the definition code after the program
+domains have been populated. However, computing predicates defined in
+Datalog requires a Datalog engine to run the Datalog code. Petablox
+offers compatibility with two such engines: bddbddb \cite{bddbddb} and
+the proprietary Logicblox database \cite{logicblox}. Logicblox runs on
+a modified form of Datalog called LogiQL, so Petablox includes tools
+to convert Datalog code to LogiQL code for use with Logicblox.
 
-Unlike other program analysis tools, the scope of what Petablox analyzes is tightly related to the reachability of the analyzed program. Petablox will compute method reachability, either statically or dynamically based on configuration, and only analyze program entities residing within reachable methods. This makes many analyses much easier because they often are only concerned with behavior of reachable program points, and Petablox gives this for free.
+Unlike other program analysis tools, the scope of what Petablox
+analyzes is tightly related to the reachability of the analyzed
+program. Petablox will compute method reachability, either statically
+or dynamically based on configuration, and only analyze program
+entities residing within reachable methods. This makes many analyses
+much easier because they often are only concerned with behavior of
+reachable program points, and Petablox gives this for free.
 
-Originally, Petablox used a different Datalog schema to represent programs. Petablox used the Doop pointer analysis framework \cite{doop}, which came with its own set of Datalog predicates to represent a Java program. During the development effort for this paper, Petablox switched to the new Datalog schema which has been discussed up to this point. This posed a significant hurdle, given that the two schema were built upon completely different architectures. Doop did not have any concept of domains and did not consider reachability, instead including all entities in a program.  
+Originally, Petablox used a different Datalog schema to represent
+programs. Petablox used the Doop pointer analysis framework
+\cite{doop}, which came with its own set of Datalog predicates to
+represent a Java program. During the development effort for this
+paper, Petablox switched to the new Datalog schema which has been
+discussed up to this point. This posed a significant hurdle, given
+that the two schema were built upon completely different
+architectures. Doop did not have any concept of domains and did not
+consider reachability, instead including all entities in a program.
 
-However, the new schema certainly has limitations compared to Doop. First, the new schema does not include primitive-typed variables in the domain of local variables. As such, none of the relations using local variables include any primitives. There is also no domain of constant values, so those program entities are not represented. The new schema also does not have a relation listing native methods in the program. Instead, they choose a select few native methods and simulate the bodies of those methods so that analyses can model the behavior of calls to native code. However, all other native methods are anonymized and simply become stubbed methods without any concrete body.
+However, the new schema certainly has limitations compared to
+Doop. First, the new schema does not include primitive-typed variables
+in the domain of local variables. As such, none of the relations using
+local variables include any primitives. There is also no domain of
+constant values, so those program entities are not represented. The
+new schema also does not have a relation listing native methods in the
+program. Instead, they choose a select few native methods and simulate
+the bodies of those methods so that analyses can model the behavior of
+calls to native code. However, all other native methods are anonymized
+and simply become stubbed methods without any concrete body.
 \section{Partial Instrumentation}
-A key insight of previous work done in \cite{manoj_project} is that some methods of the target program do not have to be instrumented if they do not interact with any data of interest. The data of interest is data that is originally returned from sink methods and eventually enters source methods. There is some subset of all the methods in the program that must be instrumented. To discover this subset, we look at the methods which reside on the callgraph from source to sink. 
+A key insight of previous work done in \cite{manoj_project} is that
+some methods of the target program do not have to be instrumented if
+they do not interact with any data of interest. The data of interest
+is data that is originally returned from sink methods and eventually
+enters source methods. There is some subset of all the methods in the
+program that must be instrumented. To discover this subset, we look at
+the methods which reside on the callgraph from source to sink.
 
-We begin with a callgraph in which nodes represent methods and edges represent calls from callers to callees. The callgraph is generated by Petablox. We mark nodes that represent source and sink methods with a special label. Then, we generate the forward callgraph from the source methods. That is, we first mark nodes that call the source nodes, then recursively mark all the nodes that are callees of other marked nodes. Then, we generate the backwards callgraph to the sink methods. That is, we start with a fresh graph, mark the sink nodes, and then recursively mark nodes that are callers of marked nodes. After computing the intersection of these two sets, we have all the methods that reside on all the possible paths from any of the source methods to any of the sink methods. 
+We begin with a callgraph in which nodes represent methods and edges
+represent calls from callers to callees. The callgraph is generated by
+Petablox. We mark nodes that represent source and sink methods with a
+special label. Then, we generate the forward callgraph from the source
+methods. That is, we first mark nodes that call the source nodes, then
+recursively mark all the nodes that are callees of other marked
+nodes. Then, we generate the backwards callgraph to the sink
+methods. That is, we start with a fresh graph, mark the sink nodes,
+and then recursively mark nodes that are callers of marked
+nodes. After computing the intersection of these two sets, we have all
+the methods that reside on all the possible paths from any of the
+source methods to any of the sink methods.
 
-There are a number of special cases in which extra methods have to be added to the set of methods to be instrumented, for reasons related to analysis correctness and bytecode correctness. As an example of analysis correctness, some methods not in the intersection set may store data originating from a source method into an instance field. The taint tag of the field must be updated else the tag will be incorrect when the data reaches a sink. We solve this case very imprecisely by adding any method which stores to an instance field to the instrumentation set. The entire method gets instrumented by Phosphor and the field's taint tag is updated correctly.
+There are a number of special cases in which extra methods have to be
+added to the set of methods to be instrumented, for reasons related to
+analysis correctness and bytecode correctness. As an example of
+analysis correctness, some methods not in the intersection set may
+store data originating from a source method into an instance
+field. The taint tag of the field must be updated else the tag will be
+incorrect when the data reaches a sink. We solve this case very
+imprecisely by adding any method which stores to an instance field to
+the instrumentation set. The entire method gets instrumented by
+Phosphor and the field's taint tag is updated correctly.
 
-Another special case is concerned with bytecode correctness. For some types, such as multidimensional arrays, Phosphor boxes the variables with a new boxed type. For example, the type \texttt{int[][]} becomes \texttt{TaintedIntArr[]}, where each \texttt{TaintedIntArr} contains both the integer array value and its associated array of taint tags. In cases where instrumented code calls uninstrumented code, the uninstrumented code may have a multidimensional array as a return type. The instrumented caller code will expect a boxed value as a return but the uninstrumented callee code will return an unboxed value. To solve this, the uninstrumented callee is simply added to the intersection set and instrumented, which changes its return type to the boxed type. There are additional special cases of both kinds.
+Another special case is concerned with bytecode correctness. For some
+types, such as multidimensional arrays, Phosphor boxes the variables
+with a new boxed type. For example, the type \texttt{int[][]} becomes
+\texttt{TaintedIntArr[]}, where each \texttt{TaintedIntArr} contains
+both the integer array value and its associated array of taint
+tags. In cases where instrumented code calls uninstrumented code, the
+uninstrumented code may have a multidimensional array as a return
+type. The instrumented caller code will expect a boxed value as a
+return but the uninstrumented callee code will return an unboxed
+value. To solve this, the uninstrumented callee is simply added to the
+intersection set and instrumented, which changes its return type to
+the boxed type. There are additional special cases of both kinds.
 
-This prior work did have a number of limitations. First, it did not consider calls into native libraries as part of its analysis. Second, the special cases tended to add a large number of extra methods and could have been done more precisely. The approach to be presented in this paper attempts to solve these issues.
+This prior work did have a number of limitations. First, it did not
+consider calls into native libraries as part of its analysis. Second,
+the special cases tended to add a large number of extra methods and
+could have been done more precisely. The approach to be presented in
+this paper attempts to solve these issues.
 
