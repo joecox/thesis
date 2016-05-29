@@ -370,7 +370,7 @@ facts deduced by our rules.
     "<TaintTest: void run()>"
     "<TaintTest: void foo(java.lang.String)>"
   \end{lstlisting}
-  \caption{Domain of methods for code in Fig.~ \ref{fig:ex}}\label{fig:domM}
+  \caption{Domain of methods for code in fig. \ref{fig:ex}}\label{fig:domM}
 \end{figure}
 
 Figure \ref{fig:domM} shows the domain of methods created by
@@ -400,7 +400,7 @@ reachability either statically or dynamically.
     MM("<TaintTest: void foo(java.lang.String()>",
        "<java.io.PrintStream: void println(java.lang.String)>").
   \end{lstlisting}
-  \caption{Relevant program fact base for code in Fig.~ \ref{fig:ex}}\label{fig:facts}
+  \caption{Relevant program fact base for code in fig. \ref{fig:ex}}\label{fig:facts}
 \end{figure}
 
 Figure \ref{fig:facts} shows relevant program facts for the code in
@@ -427,7 +427,7 @@ computed.
     tracked("<TaintTest: void foo(java.lang.String)>").
     untracked("<TaintTest: void run()>").
   \end{lstlisting}
-  \caption{Sample of computed facts for code in Fig.~ \ref{fig:ex}}\label{fig:sol}
+  \caption{Sample of computed facts for code in fig. \ref{fig:ex}}\label{fig:sol}
 \end{figure}
 
 The first computed fact states that the local variable named \texttt{s} in the \texttt{run} method is tainted. This results from applying Rule 3.9. The \texttt{taintSrc}, \texttt{IinvkXRet}, and \texttt{IM} facts from figure \ref{fig:facts} imply that the variable is tainted. The second computed fact is computed similarly, applying Rule 3.10.
