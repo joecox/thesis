@@ -8,13 +8,43 @@
 \usepackage{url}
 \usepackage{amsmath}
 \usepackage{caption}
+\usepackage{float}
 \usepackage{graphicx}
 \usepackage[T1]{fontenc}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=5mm,
+  belowskip=1mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  lineskip={1pt}
+}
 
 \mathchardef\mhyphen="2D
 
 \newcommand{\is}{:\!\mhyphen\ }
 \newcommand{\also}{,\ }
+
+\newcommand{\phosphor}{\textsc{Phosphor}}
+\newcommand{\phosphorpi}{\textsc{Phosphor-PI}}
+\newcommand{\petablox}{\textsc{Petablox}}
 
 \input {prelim}
 

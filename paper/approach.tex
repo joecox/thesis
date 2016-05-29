@@ -1,10 +1,10 @@
 \chapter{Approach and Implementation}
 In this chapter we describe the approach taken for our analysis. We
 show how the analysis propagates taint through the program and how
-this more accurately models the behavior of Phosphor than previous
+this more accurately models the behavior of \phosphor{} than previous
 work. The analysis is constructed as a series of Datalog program facts
 which build on both existing facts and each other. Each program fact
-is defined as a logical conjunction of one or more program facts. We
+is implied by a logical conjunction of one or more program facts. We
 begin with the facts that describe taintedness in local variables and
 fields. We then describe facts that are concerned with how taint is
 propagated through native library calls. We then describe facts that
@@ -14,9 +14,16 @@ versions of the callee and which will call uninstrumented versions. We
 also detail additions and modifications to Petablox that were required
 to enable the analysis.
 
-Underscores in the Datalog rules represent arguments in the facts
-which we are not interested in pattern matching on. Underscore
-arguments may be resolved to any entity in the relevant entity domain.
+To elucidate the how the Datalog rules apply to a Java program and how
+data flow facts are deduced, a code example is provided in section
+\ref{ex}, along with a program fact base, relevant rules from the
+following sections, and a solution to the rules.
+
+Underscore characters in the Datalog rules represent arguments which
+may resolve to any entity in the relevant entity domain. For example,
+an underscore character given as an argument for a type domain can
+resolve to \texttt{int}, \texttt{java.lang.String}, or any other type.
+
 \section{Tainted and Untainted Objects}
 \subsection{Taint Predicates}
 We begin by describing the predicates that represent tainted and
@@ -34,8 +41,8 @@ beginning.
 
 For this insight to work, we must make a fundamental simplification of
 how taint is tagged and tracked through the program. Originally,
-Phosphor maintained a 32-bit taint tag which described exactly how a
-variable had been tainted and the origin of its taint. If we do not
+\phosphor{} maintained a 32-bit taint tag which described exactly how
+a variable had been tainted and the origin of its taint. If we do not
 plan to track taint propagation through some methods in which a
 variable is always tainted or always untainted, we must simplify the
 taint tag to be only a boolean value. The reason for this is that a
@@ -52,7 +59,8 @@ tainted and untainted fields in the same manner as local variables.
 \subsection{TaintSrc and TaintSink Predicates}
 The predicates \texttt{taintSrc} and \texttt{taintSink} represent the
 methods that appear in the source and sink files passed to
-Phosphor. These are the methods that Phosphor tracks data from and to.
+\phosphor{}. These are the methods that \phosphor{} tracks data from
+and to.
 
 The predicates are implemented in Java as an addition the Petablox
 tool. The source and sink files can be passed to Petablox with a new
@@ -121,7 +129,7 @@ through returns.
   \begin{split}
     \mathtt{untaintedX(x) \is} & \mathtt{IinvkXRet(i,z,x) \also
       IM(i,m) \also MmethXRet(m,z,y) \also} \\ & \mathtt{
-      untaintedX(y).} \\
+      untaintedX(y) \also !taintSrc(m).} \\
   \end{split}
 \end{equation}
 \begin{equation}
@@ -143,8 +151,12 @@ means that local variable $x$ is the $z$th return of method $m$.
 
 Rule 3.7 states that when the $z$th return variable of the method $m$
 is tainted, the local variable $x$ receiving the $z$th return of
-invocation site $i$ will be tainted. Rule 3.8 states the same but for
-the propagation of untainted data.
+invocation site $i$ will be tainted.
+
+Rule 3.8 states the same as 3.7 but for the propagation of untainted
+data, with one exception. If $m$ is a source method, then the return
+variable should be tainted regardless of the content of $m$. Therefore
+we add an extra check to Rule 3.8 that $m$ is not a source method.
 
 Rule 3.9 represents the flow of tainted data from source methods into
 local variables. It states that if method $m$ is a source method, and
@@ -171,7 +183,7 @@ parameters of a method.
 
 The \texttt{MmethXArg} predicate relates methods and their
 parameters. \\ \texttt{MmethXArg(m,z,x)} means that local variable $x$
-is the $z$th parameter of method $m$. The \texttt{IinvkXArg} prediate
+is the $z$th parameter of method $m$. The \texttt{IinvkXArg} predicate
 relates local variable arguments and method invocation
 sites. \texttt{IinvkXArg(i,z,x)} means that local variable $x$ is the
 $z$th argument passed into the method represented by invocation $i$ at
@@ -309,6 +321,119 @@ sink method. Rule 3.21 states that if there is any local variable in
 method $m$ which is both tainted and untainted at some point in $m$,
 then $m$ should be tracked. Rule 3.22 states that all methods not
 tracked should be in the \texttt{untracked} predicate.
+
+\section{Code Example} \label{ex}
+
+\begin{figure}[H]
+\begin{lstlisting}
+  public class TaintTest {
+    public int f;
+    public static void main(String[] args) {
+      TaintTest t = new TaintTest();
+      t.run();
+    }
+
+    public void run() {
+      String s = taintedString();
+      foo(s);
+    }
+
+    public void foo(String s) {
+      System.out.println(s);
+    }
+
+    public String taintedString() {
+      return new String();
+    }
+    
+    public void unreachable() {
+      String s = taintedString();
+      System.out.println(s);
+    }
+  }
+\end{lstlisting}
+\caption{Java code example}\label{fig:ex}
+\end{figure}
+
+The Java program in \ref{fig:ex} demonstrates how some of the
+aforementioned Datalog rules apply to compute tainted data and tracked
+methods. We will show the domain of methods filled by Petablox, a
+relevant set of program facts generated by Petablox, and relevant
+facts deduced by our rules.
+
+\begin{figure}[H]
+  \begin{lstlisting}[language=Prolog]
+    "<java.io.PrintStream: void println(java.lang.String)>"
+    "<TaintTest: java.lang.String taintedString()>"
+    "<TaintTest: void main(java.lang.String[])>"
+    "<TaintTest: void <init>()>"
+    "<TaintTest: void run()>"
+    "<TaintTest: void foo(java.lang.String)>"
+  \end{lstlisting}
+  \caption{Domain of methods for code in Fig.~ \ref{fig:ex}}\label{fig:domM}
+\end{figure}
+
+Figure \ref{fig:domM} shows the domain of methods created by
+Petablox. This domain contains all the methods reachable from the
+program's main method. As such, the \texttt{unreachable} method is
+absent from this domain. Petablox can be configured to compute
+reachability either statically or dynamically.
+
+\begin{figure}[H]
+  \begin{lstlisting}[language=Prolog]
+    taintSink("<java.io.PrintStream: void println(java.lang.String)>").
+    taintSrc("<TaintTest: java.lang.String taintedString()>").
+
+    IM("!0<TaintTest: void run()>",
+       "<TaintTest: java.lang.String taintedString()>").
+    IM("!1<TaintTest: void run()>",
+       "<TaintTest: void foo(java.lang.String)>").
+    
+    IinvkXRet("!0<TaintTest: void run()>", 0,
+              "java.lang.String s in <TaintTest: void run()>").
+    IinvkXArg("!1<TaintTest: void run()>", 1,
+              "java.lang.String s in <TaintTest: void run()>").
+
+    MmethXArg("<TaintTest: void foo(java.lang.String)>", 1,
+              "java.lang.String s in <TaintTest: void foo(java.lang.String)>").
+
+    MM("<TaintTest: void foo(java.lang.String()>",
+       "<java.io.PrintStream: void println(java.lang.String)>").
+  \end{lstlisting}
+  \caption{Relevant program fact base for code in Fig.~ \ref{fig:ex}}\label{fig:facts}
+\end{figure}
+
+Figure \ref{fig:facts} shows relevant program facts for the code in
+figure \ref{fig:ex}. The \texttt{taintSink} and \texttt{taintSrc}
+facts show that specific methods are sink and source methods,
+respectively. The \texttt{IM} facts show that the 0th and 1st call
+sites in the \texttt{run} method resolve to the methods
+\texttt{taintedString} and \texttt{foo}, respectively. The
+\texttt{IinvkXRet} and \texttt{IinvkXArg} facts show that the return
+variable of the 0th call site and the argument passed to the 1st call
+site, respectively, are both the same local variable \texttt{s} in the
+\texttt{run} method. The \texttt{MmethXArg} fact shows that the
+parameter of the \texttt{foo} method is the local variable in
+\texttt{foo} named \texttt{s}. Finally, the \texttt{MM} fact shows
+that the \texttt{foo} method calls the \texttt{println} method.
+
+Now we will show certain computed facts and explain how they were
+computed.
+
+\begin{figure}[H]
+  \begin{lstlisting}
+    taintedX("java.lang.String s in <TaintTest: void run()>").
+    taintedX("java.lang.String s in <TaintTest: void foo()>").
+    tracked("<TaintTest: void foo(java.lang.String)>").
+    untracked("<TaintTest: void run()>").
+  \end{lstlisting}
+  \caption{Sample of computed facts for code in Fig.~ \ref{fig:ex}}\label{fig:sol}
+\end{figure}
+
+The first computed fact states that the local variable named \texttt{s} in the \texttt{run} method is tainted. This results from applying Rule 3.9. The \texttt{taintSrc}, \texttt{IinvkXRet}, and \texttt{IM} facts from figure \ref{fig:facts} imply that the variable is tainted. The second computed fact is computed similarly, applying Rule 3.10.
+
+The \texttt{tracked} fact is computed by applying Rule 3.20. The method \texttt{foo} is tracked because it calls a sink method, namely \texttt{println}. The method \texttt{run} is untracked due to the application of Rule 3.22. Rule 3.21 does not apply to \texttt{run} because its only local variable is only tainted and never untainted. 
+    
 \section{Instrumented and Uninstrumented Call Sites}
 In addition to considering some methods to be tracked and some
 untracked, sometimes invocations to tracked methods do not pass in any
@@ -353,6 +478,7 @@ states the same as 3.24 but for static fields.
 
 Rule 3.26 states that any invocation not instrumented should be
 uninstrumented.
+
 \section{Additions to Petablox}
 Many modifications and additions to Petablox were necessary to enable
 the above analysis. These modifications came in the form of new entity
@@ -377,19 +503,19 @@ methods and turned them into abstract methods without bodies,
 indistinguishable from other abstract methods. Then Petablox took a
 few specifically enumerated native methods, including
 \texttt{System.arraycopy} and added fake bodies to simulate the
-behavior of these methods. Phosphor did not model taint propagation
+behavior of these methods. \phosphor{} did not model taint propagation
 across native call boundaries in the same way the simulated bodies
 created by Petablox did. Therefore we had to modify how Petablox
-looked at native methods to accurately model Phosphor's
+looked at native methods to accurately model \phosphor{}'s
 behavior. Petablox was made to not remove the native modifier from
 native methods and native methods were added to a new \texttt{nativeM}
 predicate.
-\section{Modifications to Phosphor}
-Modifications to Phosphor were required to allow it to make use of the
-information generated by the analysis in this paper. We coordinated
-with the original author of Phosphor to implement these
+\section{Modifications to \phosphor{}}
+Modifications to \phosphor{} were required to allow it to make use of
+the information generated by the analysis in this paper. We
+coordinated with the original author of \phosphor{} to implement these
 modifications. A feedback loop was established where the original
-author would make changes to Phosphor and we would generate analysis
-results or modify the analysis if necessary and send those results
-back. The details of modifications made to Phosphor are not described
-in this paper.
+author would make changes to \phosphor{} and we would generate
+analysis results or modify the analysis if necessary and send those
+results back. The details of modifications made to \phosphor{} are not
+described in this paper.

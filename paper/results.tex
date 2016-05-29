@@ -1,108 +1,116 @@
 \chapter{Results}
-We evaluated our approach by comparing the number of tracked methods
-produced by the analysis of the prior partial instrumentation work to
-the number of tracked methods produced by the analysis in this paper.
+We evaluate our approach by comparing the number of instrumented
+methods produced by the analysis of \phosphorpi{} to the number of
+tracked methods produced by the analysis in this paper.
 
 \section{Benchmark set}
-While Phosphor \cite{phosphor_oopsla} was evaluated on performance
-using all 14 benchmarks of the DaCapo benchmark suite
-\cite{dacapobach} included in the 9.12-bach release,
-\cite{manoj_project} was evaluated on performance using only 7 of the
-14 benchmarks: avrora, batik, h2, pmd, sunflow, tomcat, and xalan, due
-to numerous problems with bytecode verification for the remaining
-7. However, lists of tracked methods were generated for all 14 of the
-benchmarks in the \cite{manoj_project} except for tradesoap, so we can
+While \phosphor{} was evaluated on performance using all 14 benchmarks
+of the DaCapo benchmark suite \cite{dacapobach} included in the
+9.12-bach release, \phosphorpi{} was evaluated on performance using
+only 7 of the 14 benchmarks: avrora, batik, h2, pmd, sunflow, tomcat,
+and xalan, due to numerous problems with bytecode verification for the
+remaining 7. For \phosphorpi{}, lists of tracked methods were
+generated for all 14 of the benchmarks except for tradesoap, so we can
 compare tracked method counts between that project and this paper. The
-lists of tracked methods produced in \cite{manoj_project} are probably
-not completely accurate because more code may have had to be
-instrumented to solve the bytecode verification issues. However, the
-comparison can still be made because, if anything, the method lists of
-\cite{manoj_project} would only have been larger. If the tracked
-method counts from this paper's analysis are favorable compared to
-those of \cite{manoj_project}, then they would only be more favorable
-if the method lists from \cite{manoj_project} were larger.
+lists of tracked methods produced for \phosphorpi{} are probably not
+completely accurate because more code may have had to be instrumented
+to solve the bytecode verification issues. However, the comparison can
+still be made because, if anything, the method lists for \phosphorpi{}
+would only have been larger. If the tracked method counts from this
+paper's analysis are favorable compared to those for \phosphorpi{},
+then they would only be more favorable if the method lists for
+\phosphorpi{} were larger.
 
 Tracked method counts for our approach could only be generated on 10
 of the 14 Dacapo benchmarks. For the remaining four, eclipse, tomcat,
 tradebeans, and tradesoap, Petablox raised errors when trying to
-perform its dynamic reachability analysis (described below).
+compute method reachability as described in section \ref{ex}.
 
 \section{Method counts}
 
 \begin{center}
   \resizebox{\textwidth}{!}{%
   \begin{tabular}{|c|c|c|c|c|c|c|}
-    \hline Benchmark & \cite{manoj_project} & tracked & reachable &
-    reachable/\cite{manoj_project} & tracked/\cite{manoj_project} &
-    tracked/reachable \\ \hline avrora & 46948 & 6724 & 16384 & 34.9
-    \% & 14.32 \% & 41.0 \% \\\hline batik & 50625 & 8643 & 19066 &
-    37.7 \% & 17.1 \% & 45.3 \% \\\hline fop & 52183 & 8253 & 23568 &
-    45.2 \% & 15.8 \% & 35.0 \% \\\hline h2 & 49765 & 15232 & 42455 &
-    83.5 \% & 30.6 \% & 35.9 \% \\\hline jython & 55125 & 11512 &
-    32653 & 59.2 \% & 20.9 \% & 35.3 \% \\\hline luindex & 21397 &
-    4135 & 11287 & 52.7 \% & 19.3 \% & 36.6 \% \\\hline lusearch &
-    21524 & 5135 & 12256 & 56.9 \% & 23.9 \% & 41.9 \% \\\hline pmd &
-    47148 & 14124 & 31277 & 66.3 \% & 30.0 \% & 45.2 \% \\\hline
-    sunflow & 45700 & 9251 & 21077 & 46.1 \% & 20.2 \% & 43.9 \%
-    \\\hline xalan & 48437 & 5352 & 14476 & 29.9 \% & 11.1 \% & 37.0
-    \% \\\hline
+    \hline Benchmark & \cite{manoj_project} & tracked & tracked/\cite{manoj_project} & reachable & reachable/\cite{manoj_project} & tracked/reachable \\ \hline
+    avrora & 46948 & 6724 & 14.3 \% & 16384 & 34.9 \% & 41.0 \% \\\hline
+    batik & 50625 & 8643 & 17.1 \% & 19066 & 37.7 \% & 45.3 \% \\\hline
+    fop & 52183 & 8253 & 15.8 \% & 23568 & 45.2 \% & 35.0 \% \\\hline
+    h2 & 49765 & 15232 & 30.6 \% & 42455 & 83.5 \% & 35.9 \% \\\hline
+    jython & 55125 & 11512 & 20.9 \% & 32653 & 59.2 \% & 35.3 \% \\\hline
+    luindex & 21397 & 4135 & 19.3 \% & 11287 & 52.7 \% & 36.6 \% \\\hline
+    lusearch & 21524 & 5135 & 23.9 \% & 12256 & 56.9 \% & 41.9 \% \\\hline
+    pmd & 47148 & 14124 & 30.0 \% & 31277 & 66.3 \% & 45.2 \% \\\hline
+    sunflow & 45700 & 9251 & 20.2 \% & 21077 & 46.1 \% & 43.9 \% \\\hline
+    xalan & 48437 & 5352 & 11.1 \% & 14476 & 29.9 \% & 37.0 \% \\\hline
   \end{tabular}}
-  \captionof{table}{Tracked method counts of \cite{manoj_project} and
+  \captionof{table}{Tracked method counts for \cite{manoj_project} and
     this paper's analysis}
 \end{center}
 
 Column 2 of Table 4.1 shows the tracked method counts produced by the
-previous analysis in \cite{manoj_project} for each of the Dacapo
+previous analysis for \phosphorpi{} for each of the Dacapo
 benchmarks. Column 3 shows the tracked method counts produced by the
 analysis in this paper. The tracked methods are the methods that will
-become instrumented by Phosphor to track taint propagation through the
+become instrumented by \phosphor{} to track taint propagation through the
 method. Remaining untracked methods only contain local variables which
 remain always tainted or untainted for the duration of the method and
 as such we do not need to track taint. Because instrumentation of
 methods is the primary contributer to the performance overhead of
-Phosphor and in \cite{manoj_phosphor}, comparing the tracked method
+\phosphor{} and \phosphorpi{}, comparing the tracked method
 counts of the previous analysis and the analysis in this paper is a
 good proxy for comparing performance overhead. On average, our
-approach reduces the number of tracked methods by 79.9 \%. The
-individual benchmark percentages are shown in Column 5.
+approach reduces the number of tracked methods by 79.9\%. The
+individual benchmark percentages are shown in Column 4.
 
-However, this number is somewhat misleading. \cite{manoj_project}
-analyzed all of the methods appearing in each benchmark and computed
-tracked methods from that set. For our approach, Petablox gives us
-reachability for free - Petablox only adds methods to the method
-entity domain that are reachable. Our Datalog analysis is then applied
-to only those methods in the entity domain. Because the Dacapo
-benchmarks contain reflective calls, we use Petablox's built-in
-dynamic reachability tool to compute reachable methods. Each Dacapo
-benchmark has three or four execution sizes which are specified as an
-argument to the benchmark: \texttt{small}, \texttt{default},
-\texttt{large}, and \texttt{huge}. We compute reachability by running
-the benchmarks at their \texttt{default} sizes. It is likely that if
-we had ran the benchmarks on their \texttt{large} size, more methods
-would be reachable and our approach would produce more tracked methods
-than for the \texttt{default} benchmark size.
+However, this number is somewhat misleading. \phosphorpi{} analyzed
+all of the methods appearing in the code for each benchmark and
+computed tracked methods from that set. For our approach, Petablox
+gives us reachability for free - Petablox only adds methods to the
+method entity domain that are reachable from the main method of the
+program. Our Datalog analysis is then applied to only those methods in
+the entity domain. Because the Dacapo benchmarks contain reflective
+calls, we configure Petablox to use its built-in dynamic reachability
+tool to compute reachable methods.
 
-Column 4 reports the total number of reachable methods as computed by
+Because the Dacapo benchmarks are designed to be performance
+benchmarks, each benchmark has three or four execution sizes:
+\texttt{small}, \texttt{default}, \texttt{large}, and sometimes
+\texttt{huge}. When running the benchmark, the size is selected by
+passing it as a parameter to the benchmark. This parameter determines
+what code the benchmark runs and how much it stresses the
+system. Because we have configured Petablox to compute reachability
+dynamically, we must provide Petablox with inputs to run the
+benchmarks. We have configured Petablox to compute reachability by
+running the benchmarks at their \texttt{default} sizes, which is
+provided as an input to each benchmark. It is likely that if we had
+ran the benchmarks on their \texttt{large} size, more methods would be
+reachable and our approach would produce more tracked methods than for
+the \texttt{default} benchmark size.
+
+Column 5 reports the total number of reachable methods as computed by
 Petablox for each benchmark to show how much of the reduction in
 tracked methods can be attributed to Petablox's reachability
 analysis. On average, the reachability analysis reduces the number of
-tracked methods by 48.8 \%. The individual percentages are shown in
-Column 4.
+tracked methods by 48.8\%. The individual percentages are shown in
+Column 6.
 
-Column 6 shows the ratio of tracked methods in our approach to the
+Column 7 shows the ratio of tracked methods in our approach to the
 number of reachable methods computed by Petablox. This ratio shows how
-much our analysis was responsible for the reduction in tracked methods
-compared to the reachability analysis. The average of this column is
-39.4 \%. Therefore, the reachability analysis contributes to the
-reduction in tracked methods more strongly than our analysis, though
-our analysis does result in a significant level of reduction.
+much further reduction in instrumentation our analysis produced past
+Petablox's reachability analysis. Our approach was responsible for a
+60.6\% reduction from the number of reachable methods to the number of
+tracked methods, and 31\% out of the total 79.9\% reduction in
+instrumentation in \phosphorpi{} Therefore, the reachability
+analysis contributes to the reduction in tracked methods more strongly
+than our analysis, though our analysis does result in a significant
+level of reduction.
 
-\section{Benchmarking Phosphor}
-While the above measurements of trackd method counts are good proxies
+\section{Benchmarking \phosphor{}}
+While the above measurements of tracked method counts are good proxies
 for comparing performance, they do not directly measure real-world
-performance of the modified Phosphor tool described in section
+performance of the modified \phosphor{} tool described in section
 3.6. Additional evaluation of the analysis approach in this paper can
-be done by measuring runtime performance of Phosphor on the Dacapo
+be done by measuring runtime performance of \phosphor{} on the Dacapo
 benchmarks given the information on which methods to track and which
 call sites to instrument. These performance results were not obtained
 due to time restrictions and other confounding factors.

@@ -1,13 +1,22 @@
 \chapter{Conclusion}
-We were able to write an improved information flow analysis compared
-to previous work which enabled us to reduce the amount of
-instrumentation required to track data through a program with
-Phosphor. We made a key assumption which restricts the functionality
-of Phosphor, but allows for a significant reduction in performance
-overhead. While much of that reduction came from a reachability
-analysis in Petablox, our analysis also made a significant
-contribution.
+We were able to write an improved information flow analysis, which
+compared favorably to previous work. It enabled us to reduce the
+amount of instrumentation required to track data with Phosphor by an
+average of 79.9\%. This improvement came with a trade-off in
+functionality, in which we restricted Phosphor to only track taint as
+a boolean property instead of with a 32-bit integer as it originally
+did.  We believe the trade-off is worthwhile given the potentially
+significant reduction in performance overhead. 
 
 We were not successful in completely evaluating our approach, as we
 were not able to measure performance overhead by directly running the
-updated version of Phosphor on the Dacapo benchmarks.
+updated version of Phosphor on the Dacapo benchmarks. Also, our
+analysis was not alone in contributing to the reduction in
+instrumentation. The built-in reachability analysis performed by
+Petablox alone produced a 48.8\% reduction in instrumentation.
+However, our analysis also made a significant contribution, being
+responsible for about 31\% out of the total 79.9\% of the overall
+reduction. We think that there is great potential for future work in
+dynamic taint analysis by partial instrumentation, both to further
+reduce performance overhead and to relax the taint tracking
+restriction we placed on Phosphor without sacrificing performance.
