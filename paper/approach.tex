@@ -69,6 +69,7 @@ configuration option and are read and filled into the
 \subsection{Assignment Rules}
 The following are the Datalog rules to handle propagation of taint by
 way of assignment:
+\begin{figure}[H]
 \begin{equation}
   \mathtt{taintedX(x) \is taintedX(y) \also MXVarAsgnInst(\_,x,y).}
 \end{equation}
@@ -88,6 +89,8 @@ way of assignment:
 \begin{equation}
   \mathtt{untaintedX(x) \is MgetFldInstX(x,f) \also untaintedF(f).}
 \end{equation}
+\caption{Rules for tainting assignment statements}\label{fig:asgn}
+\end{figure}
 
 The \texttt{MXVarAsgnInst} predicate is part of Petablox's program
 representation schema. \texttt{MXVarAsgnInst(m,x,y)} represents a
@@ -121,6 +124,7 @@ into the left hand side field, which is handled by Rules 3.3 and 3.4.
 \subsection{Return Rules}
 The following are the Datalog rules to handle propagation of taint
 through returns.
+\begin{figure}[H]
 \begin{equation}
   \mathtt{taintedX(x) \is IinvkXRet(i,z,x) \also IM(i,m) \also
     MmethXRet(m,z,y) \also taintedX(y).}
@@ -136,6 +140,8 @@ through returns.
   \mathtt{taintedX(x) \is taintSrc(m) \also IinvkXRet(i,\_,x) \also
     IM(i,m).}
 \end{equation}
+\caption{Rules for tainting returns}\label{fig:ret}
+\end{figure}
 
 Rules 3.7 and 3.8 model the taint propagation of the return of local
 variables in callee methods into local variables of caller methods.
@@ -165,6 +171,7 @@ assigned a return value from $m$ is tainted.
 \subsection{Argument Rules}
 The following are the Datalog rules to handle propagation of taint
 through variables passed as arguments.
+\begin{figure}[H]
 \begin{equation}
   \mathtt{taintedX(x) \is MmethXArg(m,z,x) \also IM(i,m) \also
     IinvkXArg(i,z,y) \also taintedX(y).}
@@ -176,6 +183,8 @@ through variables passed as arguments.
     \mathtt{untaintedX(y).} \\
   \end{split}
 \end{equation}
+\caption{Rules for tainting arguments}\label{fig:args}
+\end{figure}
 
 Rules 3.10 and 3.11 model the taint propagation of arguments passed
 into invocation sites to the local variables representing the
@@ -198,6 +207,7 @@ definition, given that they did not originate from source methods. The
 following are the Datalog rules to ensure that local variables and
 fields that have been assigned constant values and newly allocated
 objects are marked as untainted.
+\begin{figure}[H]
 \begin{equation}
   \mathtt{untaintedX(x) \is MXAsgnConst(\_,x,\_).}
 \end{equation}
@@ -211,6 +221,8 @@ objects are marked as untainted.
   \mathtt{untaintedX(x) \is MmethXArg(m,z,x) \also IM(i,m) \also
     IinvkConstArg(i,z,\_).}
 \end{equation}
+\caption{Rules for constants and allocations}\label{fig:const}
+\end{figure}
 
 Rule 3.12 marks local variables on the left hand sides of statements
 like $x = 5$ as untainted. The \texttt{MXAsgnConst} predicate
@@ -253,6 +265,7 @@ Rules 3.10 and 3.11.
 \section{Native Code}
 The following are the Datalog rules to model taint propagation of
 taint across native call boundaries.
+\begin{figure}[H]
 \begin{equation}
   \begin{split}
     \mathtt{taintedX(x) \is} & \mathtt{MmethXRet(m,z,x) \also
@@ -264,6 +277,8 @@ taint across native call boundaries.
   \mathtt{untaintedX(x) \is MmethXRet(m,\_,x) \also nativeM(m) \also
     !taintedX(x).}
 \end{equation}
+\caption{Rules for tainting across native calls}\label{fig:native}
+\end{figure}
 
 Rules 3.16 and 3.17 represent the taint propagation across native call
 boundaries for native calls which return a value. The \texttt{nativeM}
@@ -274,6 +289,7 @@ method that is tainted. Rule 3.17 states that any returns from native
 methods that have not been marked tainted are untainted. This captures
 the situations where none of the arguments to a native method are
 tainted.
+\begin{figure}[H]
 \begin{equation}
   \begin{split}
     \mathtt{taintedX(x) \is} & \mathtt{arraycopyM(m) \also IM(i,m)
@@ -288,6 +304,8 @@ tainted.
       \also untaintedX(y).} \\
   \end{split}
 \end{equation}
+\caption{Rules for tainting across \texttt{System.arraycopy}}\label{fig:arraycopy}
+\end{figure}
 
 Rules 3.18 and 3.19 represent the taint propagation across native call
 boundaries specifically for \texttt{System.arraycopy}. This is a void
@@ -299,9 +317,11 @@ index 1 (the \texttt{this} object is at index 0), which is the source
 array, is tainted, then the argument at index 3, which is the
 destination array, is also tainted. Rule 3.19 states the same but for
 propagation of untainted data.
+
 \section{Tracked and Untracked Methods}
 The following are the Datalog rules that govern which methods are
 tracked and which are untracked.
+\begin{figure}[H]
 \begin{equation}
   \mathtt{tracked(m) \is MM(m,n) \also taintSink(n).}
 \end{equation}
@@ -312,7 +332,8 @@ tracked and which are untracked.
 \begin{equation}
   \mathtt{untracked(m) \is !tracked(m).}
 \end{equation}
-
+\caption{Rules for tracking methods}\label{fig:tracked}
+\end{figure}
 
 Rules 3.20 and 3.21 model which methods should be tracked and Rule
 3.22 models which methods should be untracked. Rule 3.20 states that
@@ -376,8 +397,9 @@ facts deduced by our rules.
 Figure \ref{fig:domM} shows the domain of methods created by
 Petablox. This domain contains all the methods reachable from the
 program's main method. As such, the \texttt{unreachable} method is
-absent from this domain. Petablox can be configured to compute
-reachability either statically or dynamically.
+absent from this domain and will not appear in any base program facts
+or deduced facts. Petablox can be configured to compute reachability
+either statically or dynamically.
 
 \begin{figure}[H]
   \begin{lstlisting}[language=Prolog]
@@ -447,6 +469,8 @@ method can be the uninstrumented version.
 The following are the Datalog rules that determine which method call
 sites will call the instrumented version of a method and which will
 call the uninstrumented version.
+
+\begin{figure}[H]
 \begin{equation}
   \mathtt{inst(m,n) \is MI(m,i) \also IM(i,n) \also IinvkXArg(i,\_,x)
     \also taintedX(x) \also tracked(n).}
@@ -468,6 +492,8 @@ call the uninstrumented version.
 \begin{equation}
   \mathtt{uninst(m,n) \is !inst(m,n).}
 \end{equation}
+\caption{Rules for instrumenting call sites}\label{fig:inst}
+\end{figure}
 
 Rule 3.23 states that the invocation entity $i$ corresponding to the
 call of method $n$ inside method $m$ will be the instrumented version
