@@ -33,33 +33,34 @@ soundness, precision, portability, or some combination of the four.
 \phosphor{} \cite{phosphor_oopsla} is a taint tracking system for the
 Java Virtual Machine (JVM). It differs fundamentally from prior work
 in how it stores and propagates taint tags and is able to be
-performant, sound, precise, and portable. \phosphor{} does not require
-any JVM modification and achieves taint tracking through instrumenting
-program bytecode. Unlike previous approaches, \phosphor{} stores taint
-tags as shadow variables, one for each concrete variable in the
-program. Runtime operations cause modification and combination of
-taint tags. For example, the resulting taint tag of an arithmetic
-operation is the bitwise OR of the taint tags of the operands. Aside
-from its portability, soundness, and precision achievements, \phosphor{}
-introduces, on average, a 53\% performance overhead. \phosphor{}'s main
-mode of usage is to provide source and sink files, which enumerate the
-methods from which data of interest originates and methods into which
-we want to know if tainted data enters.
+performant, sound, precise, and portable. \phosphor{} achieves taint
+tracking through instrumenting program bytecode. Unlike previous
+approaches, \phosphor{} stores taint tags as shadow variables, one for
+each concrete variable in the program. Runtime operations cause
+modification and combination of taint tags. For example, the resulting
+taint tag of an arithmetic operation is the bitwise OR of the taint
+tags of the operands. Aside from its portability, soundness, and
+precision achievements, \phosphor{} introduces, on average, a 53\%
+performance overhead. \phosphor{}'s main mode of usage is to provide
+source and sink files, which enumerate the methods from which data of
+interest originates and methods into which we want to know if tainted
+data enters.
 
 For simplicity and completeness, \phosphor{} instruments the entire
-application bytecode and assumes the presence of an instrumented
-JVM. Previous work \cite{manoj_project}, on which this paper's author
-was a participant, explores only partially instrumenting the
-application bytecode, doing so with a new tool called \phosphorpi{}. The
-key insight of this work is that that only a subset of the methods in
-the program callgraph, and methods that read or write shared data with
-those methods, need to be instrumented. Except for some special cases,
-methods that do not lie on any of the paths from any source to any
-sink are of no interest and can remain uninstrumented. This prior work
-involved producing \phosphor{}pi by modifying \phosphor{} to support
-partial instrumentation and performing static analysis to generate the
-list of methods to be instrumented. This approach is able to save, on
-average, 11\% of performance overhead compared to \phosphor{}.
+application bytecode and assumes that the instrumented program will be
+run on a JVM with fully instrumented Java libraries. Previous work
+\cite{manoj_project}, on which this paper's author was a participant,
+explores only partially instrumenting the application bytecode, doing
+so with a new tool called \phosphorpi{}. The key insight of this work
+is that that only a subset of the methods in the program callgraph,
+and methods that read or write shared data with those methods, need to
+be instrumented. Except for some special cases, methods that do not
+lie on any of the paths from any source to any sink are of no interest
+and can remain uninstrumented. This prior work involved producing
+\phosphor{}pi by modifying \phosphor{} to support partial
+instrumentation and performing static analysis to generate the list of
+methods to be instrumented. This approach is able to save, on average,
+11\% of performance overhead compared to \phosphor{}.
 
 However, this prior work has certain limitations. First, it fails to
 consider some program behaviors, such as calls into native

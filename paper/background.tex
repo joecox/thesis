@@ -63,12 +63,11 @@ destination array. For other native calls with return values, a
 bitwise OR of all the taint tags of the arguments is done to generate
 the taint tag of the return value.
 
-In addition to instrumented application bytecode, \phosphor{} requires
-a fully instrumented JVM to function correctly. This contributes to a
-downside to \phosphor{}, which is the runtime performance overhead of,
-on average, 53\%. It is hard to know without a study, but it is
-possible that this is still too high an overhead for widespread
-adoption in systems.
+A fully instrumented program requires fully instrumented Java
+libraries to run correctly. This contributes to a downside to
+\phosphor{}, which is the runtime performance overhead of, on average,
+53\%. It is hard to know without a study, but it is possible that this
+is still too high an overhead for widespread adoption in systems.
 
 \section{Petablox}
 Petablox \cite{petablox} is a large-scale program analysis tool
